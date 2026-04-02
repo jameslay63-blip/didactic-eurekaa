@@ -1,0 +1,26 @@
+{
+  "name": "ကိုယ်ပိုင်အသံ TTS",
+  "short_name": "အသံ TTS",
+  "description": "မြန်မာဘာသာ ကိုယ်ပိုင်အသံဖြင့် စာဖတ်ပေးသော app",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f0e8",
+  "theme_color": "#1a1512",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "lang": "my"
+}

@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ကိုယ်ပိုင်အသံ TTS</title>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="အသံ TTS">
+<meta name="theme-color" content="#1a1512">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Noto+Sans+Myanmar:wght@300;400;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f0e8;
+    --cream: #ede8dc;
+    --paper: #faf7f2;
+    --ink: #1a1512;
+    --ink2: #4a3f35;
+    --muted: #9a8d80;
+    --accent: #c84b31;
+    --accent2: #2d5a3d;
+    --gold: #b8860b;
+    --border: rgba(26,21,18,0.12);
+    --shadow: rgba(26,21,18,0.08);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Noto Sans Myanmar', sans-serif;
+    min-height: 100vh;
+    background-image:
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231a1512' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  /* HEADER */
+  header {
+    padding: 36px 40px 0;
+    max-width: 780px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-end;
+    gap: 0;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 20px;
+  }
+  .title-my {
+    font-family: 'Noto Sans Myanmar', sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .title-en {
+    font-family: 'Instrument Serif', serif;
+    font-size: 38px;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -1px;
+  }
+  .title-en em { color: var(--accent); font-style: italic; }
+  .header-num {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.6;
+    padding-bottom: 4px;
+  }
+
+  main {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 36px 40px 60px;
+  }
+
+  /* STEPS */
+  .step {
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .step-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 8px;
+    flex-shrink: 0;
+  }
+  .step-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .step-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .step-done .step-num {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: white;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+
+  /* API KEY INPUT */
+  .field-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  input[type=text], input[type=password] {
+    flex: 1;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus { border-color: var(--accent); }
+
+  .btn {
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Noto Sans Myanmar', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--ink2);
+  }
+  .btn-outline:hover { border-color: var(--ink); }
+  .btn-red {
+    background: var(--accent);
+    color: white;
+  }
+  .btn-red:hover { opacity: 0.85; }
+
+  /* RECORD */
+  .rec-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 32px;
+  }
+  .rec-ring {
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    border: 3px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .rec-ring:hover { border-color: var(--accent); box-shadow: 0 0 0 8px rgba(200,75,49,0.08); }
+  .rec-ring.recording {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 8px rgba(200,75,49,0.12);
+    animation: ring-pulse 1.5s infinite;
+  }
+  @keyframes ring-pulse {
+    0%,100% { box-shadow: 0 0 0 8px rgba(200,75,49,0.12); }
+    50% { box-shadow: 0 0 0 16px rgba(200,75,49,0.04); }
+  }
+  .rec-dot {
+    width: 44px; height: 44px;
+    background: var(--accent);
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+  .rec-ring.recording .rec-dot { border-radius: 10px; width: 32px; height: 32px; }
+  .rec-label {
+    font-size: 15px; font-weight: 700; color: var(--ink);
+  }
+  .rec-hint { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.7; }
+  .rec-timer {
+    font-family: 'DM Mono', monospace;
+    font-size: 32px;
+    color: var(--accent);
+    display: none;
+  }
+  .rec-timer.show { display: block; }
+
+  /* VOICE LIST */
+  .voice-list { display: flex; flex-direction: column; gap: 10px; }
+  .voice-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--cream);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .voice-item:hover { border-color: var(--ink); }
+  .voice-item.selected { border-color: var(--accent2); background: rgba(45,90,61,0.06); }
+  .voice-dot {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--ink);
+    color: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .voice-item.selected .voice-dot { background: var(--accent2); }
+  .voice-name { font-size: 14px; font-weight: 700; }
+  .voice-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .voice-actions { margin-left: auto; display: flex; gap: 8px; }
+  .btn-tiny {
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--ink2);
+    transition: all 0.1s;
+    font-family: 'Noto Sans Myanmar', sans-serif;
+  }
+  .btn-tiny:hover { background: var(--cream); border-color: var(--ink); }
+  .btn-tiny.danger { color: var(--accent); border-color: rgba(200,75,49,0.3); }
+  .btn-tiny.danger:hover { background: rgba(200,75,49,0.08); }
+
+  /* TEXT AREA */
+  textarea {
+    width: 100%;
+    min-height: 140px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    font-family: 'Noto Sans Myanmar', sans-serif;
+    font-size: 15px;
+    color: var(--ink);
+    outline: none;
+    resize: vertical;
+    line-height: 1.8;
+    transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+
+  .char-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 6px;
+  }
+
+  /* GENERATE */
+  .gen-row {
+    display: flex; gap: 12px; align-items: center;
+    margin-top: 16px;
+  }
+  .selected-voice-badge {
+    flex: 1;
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .selected-voice-badge strong { color: var(--ink); font-style: normal; }
+
+  /* AUDIO PLAYER */
+  .audio-result {
+    display: none;
+    margin-top: 20px;
+  }
+  .audio-result.show { display: block; }
+  .audio-card {
+    background: var(--cream);
+    border: 1.5px solid var(--accent2);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .play-btn {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--accent2);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-size: 18px;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+  }
+  .play-btn:hover { opacity: 0.85; }
+  .audio-info { flex: 1; }
+  .audio-label { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .audio-sub { font-size: 11px; color: var(--muted); }
+  audio { display: none; }
+
+  /* STATUS */
+  .status-bar {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+  }
+  .status-bar.show { display: block; }
+  .status-bar.loading { background: rgba(184,134,11,0.1); color: var(--gold); border: 1px solid rgba(184,134,11,0.2); }
+  .status-bar.error { background: rgba(200,75,49,0.1); color: var(--accent); border: 1px solid rgba(200,75,49,0.2); }
+  .status-bar.success { background: rgba(45,90,61,0.1); color: var(--accent2); border: 1px solid rgba(45,90,61,0.2); }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  /* EMPTY */
+  .empty-voices {
+    text-align: center;
+    padding: 32px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  /* LOADING SPINNER */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) {
+    header, main { padding-left: 20px; padding-right: 20px; }
+    .title-en { font-size: 28px; }
+    .rec-area { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="installBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#1a1512;color:#f5f0e8;padding:16px 20px;align-items:center;gap:12px;z-index:999;box-shadow:0 -4px 20px rgba(0,0,0,0.3);">
+  <span style="font-family:'Noto Sans Myanmar',sans-serif;font-size:14px;flex:1">📲 Phone ထဲ App အဖြစ် install လုပ်မည်လား?</span>
+  <button onclick="installApp()" style="background:#c84b31;color:white;border:none;padding:10px 18px;border-radius:8px;font-family:'Noto Sans Myanmar',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">Install</button>
+  <button onclick="document.getElementById('installBanner').style.display='none'" style="background:transparent;color:#9a8d80;border:none;font-size:20px;cursor:pointer;padding:0 4px;">✕</button>
+</div>
+
+<header>
+  <div>
+    <div class="title-my">အသံပြောင်းစနစ် · Voice Cloning TTS</div>
+    <div class="title-en">ကိုယ်ပိုင် <em>အသံ</em></div>
+  </div>
+  <div class="header-num">
+    ElevenLabs API<br>
+    မြန်မာဘာသာ ပံ့ပိုး
+  </div>
+</header>
+
+<main>
+
+  <!-- STEP 1: API KEY -->
+  <div class="step" id="step1">
+    <div class="step-header">
+      <div class="step-num">01</div>
+      <div>
+        <div class="step-title">API Key ထည့်ပါ</div>
+        <div class="step-sub">ElevenLabs API key ကို ထည့်ပြီး သိမ်းပါ</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="field-row">
+        <input type="password" id="apiKeyInput" placeholder="sk-... သို့မဟုတ် API key ကို paste လုပ်ပါ" />
+        <button class="btn btn-primary" onclick="saveApiKey()">သိမ်း</button>
+      </div>
+      <div class="status-bar" id="keyStatus"></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- STEP 2: RECORD VOICE -->
+  <div class="step" id="step2">
+    <div class="step-header">
+      <div class="step-num">02</div>
+      <div>
+        <div class="step-title">အသံမှတ်တမ်းတင်ပါ</div>
+        <div class="step-sub">ကိုယ်ပိုင်အသံ clone လုပ်ရန် အနည်းဆုံး ၃၀ စက္ကန့် record လုပ်ပါ</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="rec-area">
+        <div class="rec-ring" id="recRing" onclick="toggleRecord()">
+          <div class="rec-dot"></div>
+        </div>
+        <div class="rec-timer" id="recTimer">0:00</div>
+        <div class="rec-label" id="recLabel">နှိပ်ပြီး စတင်ပါ</div>
+        <div class="rec-hint" id="recHint">
+          မိမိ၏ပုံမှန်အသံဖြင့် မြန်မာဘာသာ ဖတ်ပြပါ<br>
+          ပိုရှည်လေ clone ပိုကောင်းလေဖြစ်သည်
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:4px" id="uploadRow">
+        <input type="file" id="audioFileInput" accept="audio/*" style="display:none" onchange="handleFileUpload(this)">
+        <button class="btn btn-outline" style="width:100%" onclick="document.getElementById('audioFileInput').click()">
+          📂 ရှိပြီးသား audio file တင်မည်
+        </button>
+      </div>
+      <div class="status-bar" id="recStatus"></div>
+      <div style="margin-top:16px;display:none" id="cloneRow">
+        <div class="field-row">
+          <input type="text" id="voiceNameInput" placeholder="အသံအမည် (ဥပမာ - ကျွန်တော်အသံ)" />
+          <button class="btn btn-primary" id="cloneBtn" onclick="cloneVoice()">Clone လုပ်မည်</button>
+        </div>
+        <div class="status-bar" id="cloneStatus"></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- STEP 3: VOICES -->
+  <div class="step" id="step3">
+    <div class="step-header">
+      <div class="step-num">03</div>
+      <div>
+        <div class="step-title">အသံရွေးချယ်ပါ</div>
+        <div class="step-sub">Clone လုပ်ထားသော သို့မဟုတ် ElevenLabs မှ အသံများ</div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <span style="font-size:12px;color:var(--muted)">သင့်အသံများ</span>
+        <button class="btn btn-outline" style="padding:8px 14px;font-size:12px" onclick="loadVoices()">🔄 ပြန်တင်</button>
+      </div>
+      <div class="voice-list" id="voiceList">
+        <div class="empty-voices">API key သိမ်းပြီးမှ အသံစာရင်း ပေါ်မည်</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- STEP 4: TTS -->
+  <div class="step" id="step4">
+    <div class="step-header">
+      <div class="step-num">04</div>
+      <div>
+        <div class="step-title">စာထည့်ပြီး အသံထုတ်ပါ</div>
+        <div class="step-sub">မြန်မာဘာသာ (သို့မဟုတ်) မည်သည့်ဘာသာမဆို ရိုက်ထည့်ပါ</div>
+      </div>
+    </div>
+    <div class="card">
+      <textarea id="ttsText" placeholder="ဒီမှာ စာရိုက်ထည့်ပါ...&#10;&#10;ဥပမာ - မင်္ဂလာပါ၊ ကျွန်တော်/မ၏ အသံဖြင့် ဤစာကို ဖတ်နေသည်။" oninput="updateCharCount()"></textarea>
+      <div class="char-count"><span id="charCount">0</span> / 5000 characters</div>
+      <div class="gen-row">
+        <div class="selected-voice-badge" id="selectedBadge">အသံ မရွေးရသေးပါ</div>
+        <button class="btn btn-red" id="genBtn" onclick="generateTTS()" disabled>
+          🎙️ အသံထုတ်မည်
+        </button>
+      </div>
+      <div class="status-bar" id="genStatus"></div>
+      <div class="audio-result" id="audioResult">
+        <div class="audio-card">
+          <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+          <div class="audio-info">
+            <div class="audio-label" id="audioLabel">ထုတ်လုပ်ပြီးသော အသံ</div>
+            <div class="audio-sub" id="audioSub"></div>
+          </div>
+          <button class="btn btn-outline" style="padding:8px 14px;font-size:12px" onclick="downloadAudio()">⬇ Save</button>
+        </div>
+        <audio id="audioPlayer" onended="resetPlay()"></audio>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+let apiKey = '';
+let selectedVoiceId = '';
+let selectedVoiceName = '';
+let recordedBlob = null;
+let mediaRecorder = null;
+let recordChunks = [];
+let recording = false;
+let timerInterval = null;
+let recordSeconds = 0;
+let audioUrl = null;
+let isPlaying = false;
+
+// API KEY
+function saveApiKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val) return showStatus('keyStatus', 'error', 'API key ထည့်ပါ');
+  apiKey = val;
+  showStatus('keyStatus', 'success', '✓ API key သိမ်းပြီး');
+  loadVoices();
+}
+
+// STATUS
+function showStatus(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = `status-bar show ${type}`;
+  el.textContent = msg;
+}
+function hideStatus(id) {
+  document.getElementById(id).className = 'status-bar';
+}
+
+// RECORD
+function toggleRecord() {
+  if (!recording) startRecord();
+  else stopRecord();
+}
+
+async function startRecord() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recordChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      recordedBlob = new Blob(recordChunks, { type: 'audio/webm' });
+      showCloneRow();
+    };
+    mediaRecorder.start();
+    recording = true;
+    recordSeconds = 0;
+    document.getElementById('recRing').classList.add('recording');
+    document.getElementById('recLabel').textContent = 'နှိပ်ပြီး ရပ်ပါ';
+    document.getElementById('recHint').textContent = 'မှတ်တမ်းတင်နေသည်... ပုံမှန်အသံဖြင့် ဖတ်ပါ';
+    document.getElementById('recTimer').classList.add('show');
+    timerInterval = setInterval(() => {
+      recordSeconds++;
+      const m = Math.floor(recordSeconds / 60);
+      const s = recordSeconds % 60;
+      document.getElementById('recTimer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    }, 1000);
+  } catch(e) {
+    showStatus('recStatus', 'error', 'မိုက်ခရိုဖုန်းခွင့်ပြုချက် မရနိုင်ပါ');
+  }
+}
+
+function stopRecord() {
+  mediaRecorder.stop();
+  recording = false;
+  clearInterval(timerInterval);
+  document.getElementById('recRing').classList.remove('recording');
+  document.getElementById('recLabel').textContent = 'မှတ်တမ်းတင်ပြီး ✓';
+  document.getElementById('recTimer').classList.remove('show');
+  showStatus('recStatus', 'success', `✓ ${recordSeconds} စက္ကန့် မှတ်တမ်းတင်ပြီး — အောက်တွင် clone လုပ်ပါ`);
+}
+
+function handleFileUpload(input) {
+  if (!input.files[0]) return;
+  recordedBlob = input.files[0];
+  showStatus('recStatus', 'success', `✓ "${input.files[0].name}" တင်ပြီး`);
+  showCloneRow();
+}
+
+function showCloneRow() {
+  document.getElementById('cloneRow').style.display = 'block';
+}
+
+// CLONE VOICE
+async function cloneVoice() {
+  if (!apiKey) return showStatus('cloneStatus', 'error', 'API key ထည့်ပါ');
+  if (!recordedBlob) return showStatus('cloneStatus', 'error', 'အသံ record ပြုလုပ်ပါ');
+  const name = document.getElementById('voiceNameInput').value.trim() || 'ကျွန်တော်အသံ';
+
+  const btn = document.getElementById('cloneBtn');
+  btn.innerHTML = '<span class="spinner"></span>Clone လုပ်နေသည်...';
+  btn.disabled = true;
+  showStatus('cloneStatus', 'loading', 'ElevenLabs မှ clone လုပ်နေသည်...');
+
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', 'Cloned via ကိုယ်ပိုင်အသံ TTS');
+    formData.append('files', recordedBlob, 'voice.webm');
+
+    const res = await fetch('https://api.elevenlabs.io/v1/voices/add', {
+      method: 'POST',
+      headers: { 'xi-api-key': apiKey },
+      body: formData
+    });
+    const data = await res.json();
+    if (data.voice_id) {
+      showStatus('cloneStatus', 'success', `✓ "${name}" clone ပြီးပါပြီ!`);
+      loadVoices();
+    } else {
+      showStatus('cloneStatus', 'error', data.detail?.message || 'Clone မအောင်မြင်ပါ');
+    }
+  } catch(e) {
+    showStatus('cloneStatus', 'error', 'Network error: ' + e.message);
+  } finally {
+    btn.innerHTML = 'Clone လုပ်မည်';
+    btn.disabled = false;
+  }
+}
+
+// LOAD VOICES
+async function loadVoices() {
+  if (!apiKey) return;
+  const list = document.getElementById('voiceList');
+  list.innerHTML = '<div class="empty-voices">အသံစာရင်း တင်နေသည်...</div>';
+
+  try {
+    const res = await fetch('https://api.elevenlabs.io/v1/voices', {
+      headers: { 'xi-api-key': apiKey }
+    });
+    const data = await res.json();
+    if (!data.voices || data.voices.length === 0) {
+      list.innerHTML = '<div class="empty-voices">အသံ မတွေ့ပါ<br>အသံ clone လုပ်ပါ</div>';
+      return;
+    }
+
+    // Show cloned voices first
+    const sorted = [...data.voices].sort((a,b) => {
+      const aOwn = a.category === 'cloned' ? -1 : 1;
+      const bOwn = b.category === 'cloned' ? -1 : 1;
+      return aOwn - bOwn;
+    });
+
+    list.innerHTML = sorted.slice(0, 20).map(v => `
+      <div class="voice-item ${v.voice_id === selectedVoiceId ? 'selected' : ''}"
+           onclick="selectVoice('${v.voice_id}', '${v.name.replace(/'/g,"\\'")}')">
+        <div class="voice-dot">${v.name.charAt(0).toUpperCase()}</div>
+        <div style="flex:1;min-width:0">
+          <div class="voice-name">${v.name}</div>
+          <div class="voice-meta">${v.category === 'cloned' ? '⭐ ကိုယ်ပိုင်အသံ' : v.labels?.accent || 'ElevenLabs Voice'}</div>
+        </div>
+        <div class="voice-actions">
+          ${v.category === 'cloned' ? `<button class="btn-tiny danger" onclick="event.stopPropagation();deleteVoice('${v.voice_id}','${v.name.replace(/'/g,"\\'")}')">ဖျက်</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    list.innerHTML = '<div class="empty-voices">တင်မရပါ — API key စစ်ဆေးပါ</div>';
+  }
+}
+
+function selectVoice(id, name) {
+  selectedVoiceId = id;
+  selectedVoiceName = name;
+  document.getElementById('selectedBadge').innerHTML = `အသံ: <strong>${name}</strong>`;
+  document.getElementById('genBtn').disabled = false;
+  loadVoices();
+}
+
+async function deleteVoice(id, name) {
+  if (!confirm(`"${name}" ကို ဖျက်မည်လား?`)) return;
+  await fetch(`https://api.elevenlabs.io/v1/voices/${id}`, {
+    method: 'DELETE',
+    headers: { 'xi-api-key': apiKey }
+  });
+  if (selectedVoiceId === id) { selectedVoiceId = ''; selectedVoiceName = ''; }
+  loadVoices();
+}
+
+// CHAR COUNT
+function updateCharCount() {
+  const len = document.getElementById('ttsText').value.length;
+  document.getElementById('charCount').textContent = len;
+}
+
+// GENERATE TTS
+async function generateTTS() {
+  const text = document.getElementById('ttsText').value.trim();
+  if (!text) return showStatus('genStatus', 'error', 'စာ ရိုက်ထည့်ပါ');
+  if (!selectedVoiceId) return showStatus('genStatus', 'error', 'အသံ ရွေးပါ');
+  if (!apiKey) return showStatus('genStatus', 'error', 'API key ထည့်ပါ');
+
+  const btn = document.getElementById('genBtn');
+  btn.innerHTML = '<span class="spinner"></span>ထုတ်လုပ်နေသည်...';
+  btn.disabled = true;
+  showStatus('genStatus', 'loading', 'ElevenLabs မှ အသံ ထုတ်လုပ်နေသည်...');
+  document.getElementById('audioResult').classList.remove('show');
+
+  try {
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`, {
+      method: 'POST',
+      headers: {
+        'xi-api-key': apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text: text,
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail?.message || 'API error');
+    }
+
+    const blob = await res.blob();
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    audioUrl = URL.createObjectURL(blob);
+
+    const player = document.getElementById('audioPlayer');
+    player.src = audioUrl;
+    document.getElementById('audioLabel').textContent = selectedVoiceName + ' — ' + text.slice(0,30) + (text.length > 30 ? '...' : '');
+    document.getElementById('audioSub').textContent = `${text.length} characters · eleven_multilingual_v2`;
+    document.getElementById('audioResult').classList.add('show');
+    showStatus('genStatus', 'success', '✓ အသံ ထုတ်လုပ်ပြီး — ဖွင့်နားဆင်ပါ');
+
+  } catch(e) {
+    showStatus('genStatus', 'error', 'Error: ' + e.message);
+  } finally {
+    btn.innerHTML = '🎙️ အသံထုတ်မည်';
+    btn.disabled = false;
+  }
+}
+
+function togglePlay() {
+  const player = document.getElementById('audioPlayer');
+  const btn = document.getElementById('playBtn');
+  if (isPlaying) {
+    player.pause();
+    btn.textContent = '▶';
+    isPlaying = false;
+  } else {
+    player.play();
+    btn.textContent = '⏸';
+    isPlaying = true;
+  }
+}
+function resetPlay() {
+  document.getElementById('playBtn').textContent = '▶';
+  isPlaying = false;
+}
+
+function downloadAudio() {
+  if (!audioUrl) return;
+  const a = document.createElement('a');
+  a.href = audioUrl;
+  a.download = `${selectedVoiceName}-tts.mp3`;
+  a.click();
+}
+
+// Auto-load with saved key if any
+window.onload = () => {
+  document.getElementById('apiKeyInput').value = '47b1c76f2ea2492fa8e544f068748237';
+};
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// PWA Install Banner
+let deferredPrompt;
+const installBanner = document.getElementById('installBanner');
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBanner.style.display = 'flex';
+});
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    installBanner.style.display = 'none';
+  });
+}
+window.addEventListener('appinstalled', () => {
+  installBanner.style.display = 'none';
+});
+</script>
+</body>
+</html>
